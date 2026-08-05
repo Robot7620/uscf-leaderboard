@@ -5,9 +5,10 @@ import type { Player } from '@/types'
 interface LeaderboardProps {
   players: Player[]
   onRemove: (uscfId: string) => void
+  title?: string
 }
 
-export function Leaderboard({ players, onRemove }: LeaderboardProps) {
+export function Leaderboard({ players, onRemove, title = 'Leaderboard' }: LeaderboardProps) {
   const sortedPlayers = [...players].sort((a, b) => {
     const ratingA = a.regular || a.quick || a.blitz || 0
     const ratingB = b.regular || b.quick || b.blitz || 0
@@ -17,7 +18,7 @@ export function Leaderboard({ players, onRemove }: LeaderboardProps) {
   return (
     <div className="bg-slate-800 rounded-xl shadow-xl overflow-hidden">
       <div className="px-6 py-4 bg-slate-900 border-b border-slate-700">
-        <h2 className="text-2xl font-bold">Leaderboard</h2>
+        <h2 className="text-2xl font-bold">{title}</h2>
       </div>
 
       <div className="overflow-x-auto">
