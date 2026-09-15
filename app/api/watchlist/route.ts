@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth'
 import { sql } from '@/lib/db'
+import { fetchUscfPlayer } from '@/lib/uscf'
 
 // GET - List all watchlist entries
 export async function GET() {
@@ -42,16 +43,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify USCF ID resolves to a real player
-    const playerResponse = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/player/${uscfId}`,
-      {
-        headers: {
-          'User-Agent': 'Mozilla/5.0'
-        }
-      }
-    )
-
-    if (!playerResponse.ok) {
+    const player = await fetchUscfPlayer(uscfId)
+    if (!player) {
       return NextResponse.json(
         { error: 'Invalid USCF ID - player not found' },
         { status: 400 }

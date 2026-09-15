@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { SignJWT, jwtVerify } from 'jose'
+import { SignJWT, jwtVerify, type JWTPayload } from 'jose'
 import { cookies } from 'next/headers'
 import { sql } from './db'
 
@@ -13,7 +13,7 @@ const secret = new TextEncoder().encode(SESSION_SECRET)
 const SESSION_COOKIE_NAME = 'uscf_session'
 const SESSION_MAX_AGE = 7 * 24 * 60 * 60 // 7 days in seconds
 
-export interface SessionPayload {
+export interface SessionPayload extends JWTPayload {
   userId: string
   username: string
   uscfId: string

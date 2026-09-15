@@ -12,11 +12,3 @@ export const sql = postgres(databaseUrl, {
   idle_timeout: 20,
   connect_timeout: 10,
 })
-
-// Helper for parameterized queries with better typing
-export async function query<T = any>(
-  queryText: string,
-  params: any[] = []
-): Promise<T[]> {
-  return sql.unsafe(queryText, params) as Promise<T[]>
-}
