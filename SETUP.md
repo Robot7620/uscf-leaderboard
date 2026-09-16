@@ -48,10 +48,11 @@
 
    Your final `.env.development.local` should look like:
    ```
-   NODE_TLS_REJECT_UNAUTHORIZED=0
    DATABASE_URL=postgres://postgres.abcdefghijk:your-password@aws-0-us-east-1.pooler.supabase.com:6543/postgres
    SESSION_SECRET=a1b2c3d4e5f6...long-random-hex-string
    ```
+
+   (`lib/db.ts` already sets `ssl: 'require'` on the Postgres client for Supabase's pooler - you don't need `NODE_TLS_REJECT_UNAUTHORIZED`, which would disable certificate verification for every outbound HTTPS call this process makes, not just this one connection.)
 
 ## Step 5: Test Locally
 
@@ -93,7 +94,6 @@
    - Settings → Environment Variables
    - Add `DATABASE_URL` (the same value from your `.env.development.local`)
    - Add `SESSION_SECRET` (the same value)
-   - **DO NOT** add `NODE_TLS_REJECT_UNAUTHORIZED` (that's local-only)
 
 2. Redeploy:
    ```bash

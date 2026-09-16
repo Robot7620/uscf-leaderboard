@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Leaderboard } from '@/components/Leaderboard'
 import { AddFriend } from '@/components/AddFriend'
-import { ActivityFeed } from '@/components/ActivityFeed'
 import { FriendRequests } from '@/components/FriendRequests'
 import type { Player } from '@/types'
 
@@ -198,18 +197,11 @@ export default function Home() {
                   <p className="text-slate-400">No friends yet. Send a friend request to get started!</p>
                 </div>
               ) : (
-                <div className="grid lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2">
-                    <Leaderboard
-                      players={friendsPlayers}
-                      onRemove={removeFriend}
-                      title="Friends Leaderboard"
-                    />
-                  </div>
-                  <div>
-                    <ActivityFeed players={friendsPlayers} />
-                  </div>
-                </div>
+                <Leaderboard
+                  players={friendsPlayers}
+                  onRemove={removeFriend}
+                  title="Friends Leaderboard"
+                />
               )}
             </div>
 
@@ -221,17 +213,12 @@ export default function Home() {
                   <p className="text-slate-400">Your watchlist is empty. Add a USCF ID above to track players!</p>
                 </div>
               ) : (
-                <div className="grid lg:grid-cols-3 gap-6 mt-6">
-                  <div className="lg:col-span-2">
-                    <Leaderboard
-                      players={watchlistPlayers}
-                      onRemove={removeFromWatchlist}
-                      title="Watchlist"
-                    />
-                  </div>
-                  <div>
-                    <ActivityFeed players={watchlistPlayers} />
-                  </div>
+                <div className="mt-6">
+                  <Leaderboard
+                    players={watchlistPlayers}
+                    onRemove={removeFromWatchlist}
+                    title="Watchlist"
+                  />
                 </div>
               )}
             </div>

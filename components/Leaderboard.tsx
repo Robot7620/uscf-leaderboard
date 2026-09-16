@@ -10,9 +10,7 @@ interface LeaderboardProps {
 
 export function Leaderboard({ players, onRemove, title = 'Leaderboard' }: LeaderboardProps) {
   const sortedPlayers = [...players].sort((a, b) => {
-    const ratingA = a.regular || a.quick || a.blitz || 0
-    const ratingB = b.regular || b.quick || b.blitz || 0
-    return ratingB - ratingA
+    return (b.regular || 0) - (a.regular || 0)
   })
 
   return (
@@ -32,16 +30,7 @@ export function Leaderboard({ players, onRemove, title = 'Leaderboard' }: Leader
                 Player
               </th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Regular
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Quick
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Blitz
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                State
+                Rating
               </th>
               <th className="px-6 py-3"></th>
             </tr>
@@ -64,19 +53,6 @@ export function Leaderboard({ players, onRemove, title = 'Leaderboard' }: Leader
                   <span className="text-lg font-semibold">
                     {player.regular || '-'}
                   </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="text-lg font-semibold">
-                    {player.quick || '-'}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="text-lg font-semibold">
-                    {player.blitz || '-'}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-slate-400">
-                  {player.state || '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right">
                   <button

@@ -1,79 +1,47 @@
 import type { Player } from '@/types'
 
-// Fetch and parse a player's profile from the official USCF website.
+interface ChessToolsUscfPlayer {
+  name: string
+  rating: number
+}
+
+// Look up a player's USCF rating via the ChessTools ratings API
+// (https://api.chesstools.org), which mirrors USCF's periodic bulk
+// ratings list. uschess.org itself no longer allows automated lookups
+// (it added a Cloudflare bot challenge that blocks all non-browser
+// requests), so this replaces the previous direct-scrape approach.
 // Returns null if no player exists for the given ID.
 export async function fetchUscfPlayer(id: string): Promise<Player | null> {
   const response = await fetch(
-    `https://www.uschess.org/msa/MbrDtlMain.php?${encodeURIComponent(id)}`,
+    `https://api.chesstools.org/uscf/${encodeURIComponent(id)}`,
     {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      },
-      // Cache each player for 1 hour to avoid hammering USCF
+      // Cache each player for 1 hour; the upstream list itself only
+      // refreshes about once a day.
       next: { revalidate: 3600 }
     }
   )
 
-  const html = await response.text()
+  if (!response.ok) {
+    return null
+  }
 
-  const name = extractName(html)
-  if (!name) {
+  const data: ChessToolsUscfPlayer = await response.json()
+  if (!data.name) {
     return null
   }
 
   return {
     id,
-    name,
-    regular: extractRating(html, 'Regular Rating'),
-    quick: extractRating(html, 'Quick Rating'),
-    blitz: extractRating(html, 'Blitz Rating'),
-    state: extractState(html),
-    lastChange: extractLastRatedDate(html),
-    lastEvent: extractLastEvent(html),
-    overallRank: extractRank(html, 'Overall Ranking'),
+    name: formatName(data.name),
+    regular: data.rating,
   }
 }
 
-// Name appears as: <font size=+1><b>12910923: PHIL HANNA</b>
-function extractName(html: string): string | null {
-  const match = html.match(/<font size=\+1><b>\d+:\s*([^<]+)<\/b>/i)
-  return match ? match[1].trim() : null
-}
-
-// Rating layout: <td>Regular Rating</td> ... <td> <b> [<nobr>] 1268&nbsp;&nbsp; 2025-12 ...
-// We must skip the "Online-" variants, which share the "Regular Rating" text.
-function extractRating(html: string, label: string): number | undefined {
-  // Match the label cell NOT preceded by "Online-", then the next <b>...number
-  const regex = new RegExp(
-    `(?<!Online-)${label}\\s*</td>\\s*<td>\\s*<b>\\s*(?:<nobr>)?\\s*(\\d{2,4})`,
-    'i'
-  )
-  const match = html.match(regex)
-  return match ? parseInt(match[1]) : undefined
-}
-
-// State appears as: State</td> ... <td> <b> NC </b>
-function extractState(html: string): string | undefined {
-  const match = html.match(/State\s*<\/td>\s*<td>\s*<b>\s*([A-Z]{2})/i)
-  return match ? match[1] : undefined
-}
-
-// Last Rated Event: <a ...>ID</a> '25 EVENT NAME Rated on 2025-10-06
-function extractLastRatedDate(html: string): string | undefined {
-  const match = html.match(/Rated on\s*(\d{4}-\d{2}-\d{2})/i)
-  return match ? match[1] : undefined
-}
-
-function extractLastEvent(html: string): string | undefined {
-  const match = html.match(
-    /Last Rated Event:\s*<a[^>]*>[^<]*<\/a>\s*(.+?)\s*Rated on/i
-  )
-  return match ? match[1].replace(/&nbsp;/g, ' ').trim() : undefined
-}
-
-// Overall Ranking</td><td><b>22470(Tied) out of 77045</b>
-function extractRank(html: string, label: string): string | undefined {
-  const regex = new RegExp(`${label}\\s*</td>\\s*<td>\\s*<b>\\s*([^<]+?)\\s*</b>`, 'i')
-  const match = html.match(regex)
-  return match ? match[1].replace(/&nbsp;/g, ' ').trim() : undefined
+// ChessTools returns names as "LAST,FIRST MIDDLE" - reformat to "First Middle Last"
+function formatName(name: string): string {
+  const [last, rest] = name.split(',')
+  if (!rest) {
+    return name.trim()
+  }
+  return `${rest.trim()} ${last.trim()}`
 }
