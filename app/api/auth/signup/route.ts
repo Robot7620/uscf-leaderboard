@@ -1,15 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sql } from '@/lib/db'
-import { hashPassword, setSessionCookie } from '@/lib/auth'
+import { hashPassword, setSessionCookie, validatePassword } from '@/lib/auth'
 import { fetchUscfPlayer } from '@/lib/uscf'
+import { checkRequestRateLimit } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
+    const rateLimit = await checkRequestRateLimit(request, 'signup', 5, 60 * 60)
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many signup attempts. Please try again later.' },
+        { status: 429, headers: { 'Retry-After': String(rateLimit.retryAfterSeconds) } }
+      )
+    }
+
     const body = await request.json()
     const { username, password, uscfId } = body
 
     // Validate input
-    if (!username || !password || !uscfId) {
+    if (
+      typeof username !== 'string' ||
+      typeof password !== 'string' ||
+      typeof uscfId !== 'string' ||
+      !username ||
+      !password ||
+      !uscfId
+    ) {
       return NextResponse.json(
         { error: 'Username, password, and USCF ID are required' },
         { status: 400 }
@@ -23,11 +39,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (password.length < 6) {
-      return NextResponse.json(
-        { error: 'Password must be at least 6 characters' },
-        { status: 400 }
-      )
+    const passwordError = validatePassword(password)
+    if (passwordError) {
+      return NextResponse.json({ error: passwordError }, { status: 400 })
     }
 
     // Verify USCF ID resolves to a real player

@@ -40,6 +40,15 @@ CREATE TABLE watchlist (
   PRIMARY KEY (user_id, uscf_id)
 );
 
+-- Rate limiting: fixed-window request counters keyed by e.g. "login:<ip>".
+-- Backed by Postgres (rather than in-memory) so counts are shared across
+-- serverless instances instead of resetting on every cold start.
+CREATE TABLE rate_limits (
+  key TEXT PRIMARY KEY,
+  count INTEGER NOT NULL DEFAULT 1,
+  window_start TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- Indexes for common queries
 CREATE INDEX idx_friend_requests_to_user ON friend_requests(to_user_id) WHERE status = 'pending';
 CREATE INDEX idx_friend_requests_from_user ON friend_requests(from_user_id);

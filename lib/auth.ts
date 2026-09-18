@@ -27,6 +27,24 @@ export interface User {
   created_at: string
 }
 
+const PASSWORD_MIN_LENGTH = 8
+// bcrypt only looks at the first 72 bytes of its input and silently
+// ignores the rest, so without this check two passwords that only differ
+// after byte 72 would hash identically and a user could believe a much
+// longer password was in effect than actually was.
+const PASSWORD_MAX_BYTES = 72
+
+// Returns an error message if the password fails policy, or null if it's fine.
+export function validatePassword(password: string): string | null {
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    return `Password must be at least ${PASSWORD_MIN_LENGTH} characters`
+  }
+  if (Buffer.byteLength(password, 'utf8') > PASSWORD_MAX_BYTES) {
+    return `Password must be ${PASSWORD_MAX_BYTES} bytes or fewer (bcrypt, which we use to hash passwords, ignores anything past that)`
+  }
+  return null
+}
+
 // Hash a password
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10)

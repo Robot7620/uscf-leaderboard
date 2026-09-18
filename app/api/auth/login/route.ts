@@ -1,13 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sql } from '@/lib/db'
 import { verifyPassword, setSessionCookie } from '@/lib/auth'
+import { checkRequestRateLimit } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
+    const rateLimit = await checkRequestRateLimit(request, 'login', 10, 15 * 60)
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many login attempts. Please try again later.' },
+        { status: 429, headers: { 'Retry-After': String(rateLimit.retryAfterSeconds) } }
+      )
+    }
+
     const body = await request.json()
     const { username, password } = body
 
-    if (!username || !password) {
+    if (typeof username !== 'string' || typeof password !== 'string' || !username || !password) {
       return NextResponse.json(
         { error: 'Username and password are required' },
         { status: 400 }

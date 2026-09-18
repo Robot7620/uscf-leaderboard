@@ -99,9 +99,9 @@ export default function SignupPage() {
                 className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Choose a secure password"
                 required
-                minLength={6}
+                minLength={8}
               />
-              <p className="mt-1 text-xs text-slate-400">At least 6 characters</p>
+              <p className="mt-1 text-xs text-slate-400">At least 8 characters</p>
             </div>
 
             {error && (

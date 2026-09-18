@@ -52,7 +52,7 @@
    SESSION_SECRET=a1b2c3d4e5f6...long-random-hex-string
    ```
 
-   (`lib/db.ts` already sets `ssl: 'require'` on the Postgres client for Supabase's pooler - you don't need `NODE_TLS_REJECT_UNAUTHORIZED`, which would disable certificate verification for every outbound HTTPS call this process makes, not just this one connection.)
+   (`lib/db.ts` sets `ssl: 'require'` on the Postgres client for Supabase's pooler in production - you don't need `NODE_TLS_REJECT_UNAUTHORIZED`, which would disable certificate verification for every outbound HTTPS call this process makes, not just this one connection. `require` alone doesn't verify the server's certificate though - see "Verifying the database certificate" after Step 7 to close that gap before you go live.)
 
 ## Step 5: Test Locally
 
@@ -68,7 +68,7 @@
 4. Create an account at `/signup` with:
    - A username (at least 3 characters)
    - A real USCF ID (e.g., `12910923` for Phil Hanna)
-   - A password (at least 6 characters)
+   - A password (at least 8 characters)
 
 5. After signup, you should be logged in and see the home page with Friends and Watchlist sections
 
@@ -103,6 +103,18 @@
    ```
 
 3. Vercel will auto-deploy. Once done, visit your live URL and test signup/login!
+
+## Verifying the database certificate
+
+By default in production, `lib/db.ts` connects with `ssl: 'require'`, which encrypts traffic to Supabase's pooler but does **not** verify that the certificate it presents is actually Supabase's - a network-level attacker could still intercept the connection with a forged cert. To close that gap:
+
+1. In the Supabase dashboard, go to Project Settings → Database → SSL Configuration, and download the root certificate.
+2. Add its contents as a Vercel environment variable:
+   - Go to your Vercel project → Settings → Environment Variables
+   - Add `DATABASE_CA_CERT` and paste the full PEM contents (including the `-----BEGIN CERTIFICATE-----` / `-----END CERTIFICATE-----` lines) as the value
+3. Redeploy. `lib/db.ts` picks it up automatically and switches to full certificate verification (`rejectUnauthorized: true` with that CA). If it's not set, the app still runs on `ssl: 'require'` and logs a warning on startup.
+
+(Running on a platform with a writable filesystem instead of Vercel? You can alternatively save the certificate to a file and set `DATABASE_CA_CERT_PATH` to its path - `DATABASE_CA_CERT` takes priority if both are set.)
 
 ## Troubleshooting
 
