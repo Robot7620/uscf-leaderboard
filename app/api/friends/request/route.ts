@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth'
 import { sql } from '@/lib/db'
+import { handleApiError } from '@/lib/api-error'
 
 export async function POST(request: NextRequest) {
   try {
@@ -83,14 +84,7 @@ export async function POST(request: NextRequest) {
     `
 
     return NextResponse.json({ request: requests[0] })
-  } catch (error: any) {
-    if (error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    console.error('Error creating friend request:', error)
-    return NextResponse.json(
-      { error: 'Failed to send friend request' },
-      { status: 500 }
-    )
+  } catch (error) {
+    return handleApiError(error, 'Failed to send friend request', 'Error creating friend request:')
   }
 }

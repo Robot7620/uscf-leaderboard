@@ -15,22 +15,28 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { username, password, uscfId } = body
+    const { password } = body
 
     // Validate input
     if (
-      typeof username !== 'string' ||
+      typeof body.username !== 'string' ||
       typeof password !== 'string' ||
-      typeof uscfId !== 'string' ||
-      !username ||
+      typeof body.uscfId !== 'string' ||
+      !body.username.trim() ||
       !password ||
-      !uscfId
+      !body.uscfId.trim()
     ) {
       return NextResponse.json(
         { error: 'Username, password, and USCF ID are required' },
         { status: 400 }
       )
     }
+
+    // Trimmed so " bob" and "bob" can't register as distinct-looking
+    // accounts, and so a stray space in a pasted USCF ID doesn't cause a
+    // spurious "player not found".
+    const username: string = body.username.trim()
+    const uscfId: string = body.uscfId.trim()
 
     if (username.length < 3) {
       return NextResponse.json(

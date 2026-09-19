@@ -37,11 +37,19 @@ export async function fetchUscfPlayer(id: string): Promise<Player | null> {
   }
 }
 
-// ChessTools returns names as "LAST,FIRST MIDDLE" - reformat to "First Middle Last"
-function formatName(name: string): string {
-  const [last, rest] = name.split(',')
-  if (!rest) {
-    return name.trim()
+// ChessTools returns names as "LAST,FIRST MIDDLE" - reformat to "First Middle
+// Last". Some records carry a suffix after a second comma (e.g.
+// "GARCIA,JUAN,JR"), which must be appended after the last name rather than
+// silently dropped.
+export function formatName(name: string): string {
+  const parts = name.split(',').map((part) => part.trim())
+  const [last, first, ...suffixes] = parts
+  // Only a bare name with no comma at all skips reordering. Branching on
+  // whether `first` happens to be empty (rather than on comma count) would
+  // silently drop a suffix again whenever the first-name field is blank,
+  // e.g. "SMITH,,JR".
+  if (parts.length === 1) {
+    return last
   }
-  return `${rest.trim()} ${last.trim()}`
+  return [first, last, ...suffixes].filter(Boolean).join(' ')
 }

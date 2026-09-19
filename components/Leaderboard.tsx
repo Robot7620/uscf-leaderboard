@@ -51,7 +51,7 @@ export function Leaderboard({ players, onRemove, title = 'Leaderboard' }: Leader
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className="text-lg font-semibold">
-                    {player.regular || '-'}
+                    {player.regular ?? '-'}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right">

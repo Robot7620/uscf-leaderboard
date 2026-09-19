@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth'
 import { sql } from '@/lib/db'
 import { fetchUscfPlayer } from '@/lib/uscf'
+import { handleApiError } from '@/lib/api-error'
 
 // GET - List all watchlist entries
 export async function GET() {
@@ -16,15 +17,8 @@ export async function GET() {
     `
 
     return NextResponse.json({ watchlist: entries })
-  } catch (error: any) {
-    if (error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    console.error('Error fetching watchlist:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch watchlist' },
-      { status: 500 }
-    )
+  } catch (error) {
+    return handleApiError(error, 'Failed to fetch watchlist', 'Error fetching watchlist:')
   }
 }
 
@@ -59,15 +53,8 @@ export async function POST(request: NextRequest) {
     `
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
-    if (error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    console.error('Error adding to watchlist:', error)
-    return NextResponse.json(
-      { error: 'Failed to add to watchlist' },
-      { status: 500 }
-    )
+  } catch (error) {
+    return handleApiError(error, 'Failed to add to watchlist', 'Error adding to watchlist:')
   }
 }
 
@@ -91,14 +78,7 @@ export async function DELETE(request: NextRequest) {
     `
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
-    if (error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    console.error('Error removing from watchlist:', error)
-    return NextResponse.json(
-      { error: 'Failed to remove from watchlist' },
-      { status: 500 }
-    )
+  } catch (error) {
+    return handleApiError(error, 'Failed to remove from watchlist', 'Error removing from watchlist:')
   }
 }

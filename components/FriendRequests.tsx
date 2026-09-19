@@ -18,7 +18,11 @@ interface OutgoingRequest {
   created_at: string
 }
 
-export function FriendRequests() {
+interface FriendRequestsProps {
+  onFriendAccepted?: () => void
+}
+
+export function FriendRequests({ onFriendAccepted }: FriendRequestsProps) {
   const [incoming, setIncoming] = useState<IncomingRequest[]>([])
   const [outgoing, setOutgoing] = useState<OutgoingRequest[]>([])
   const [newRequestUscfId, setNewRequestUscfId] = useState('')
@@ -85,7 +89,7 @@ export function FriendRequests() {
       if (res.ok) {
         await loadRequests()
         if (action === 'accept') {
-          window.location.reload() // Reload to update friends list
+          onFriendAccepted?.()
         }
       }
     } catch (err) {

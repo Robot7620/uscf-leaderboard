@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth'
 import { sql } from '@/lib/db'
+import { handleApiError } from '@/lib/api-error'
 
 export async function GET() {
   try {
@@ -21,14 +22,7 @@ export async function GET() {
     `
 
     return NextResponse.json({ friends })
-  } catch (error: any) {
-    if (error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    console.error('Error fetching friends:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch friends' },
-      { status: 500 }
-    )
+  } catch (error) {
+    return handleApiError(error, 'Failed to fetch friends', 'Error fetching friends:')
   }
 }

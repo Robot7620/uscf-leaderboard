@@ -109,30 +109,28 @@ export default function Home() {
     }
   }
 
-  const removeFromWatchlist = async (uscfId: string) => {
+  const deleteAndReload = async (url: string, reload: () => Promise<void>, fallbackMessage: string) => {
     try {
-      await fetch(`/api/watchlist?uscfId=${uscfId}`, {
-        method: 'DELETE',
-      })
-      await loadWatchlist()
+      const res = await fetch(url, { method: 'DELETE' })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        alert(data.error || fallbackMessage)
+        return
+      }
+      await reload()
     } catch (err) {
-      console.error('Failed to remove from watchlist:', err)
+      alert(fallbackMessage)
     }
   }
 
-  const removeFriend = async (friendId: string) => {
+  const removeFromWatchlist = (uscfId: string) =>
+    deleteAndReload(`/api/watchlist?uscfId=${uscfId}`, loadWatchlist, 'Failed to remove from watchlist')
+
+  const removeFriend = (friendId: string) => {
     if (!confirm('Remove this friend? This will remove the friendship for both of you.')) {
       return
     }
-
-    try {
-      await fetch(`/api/friends/${friendId}`, {
-        method: 'DELETE',
-      })
-      await loadFriends()
-    } catch (err) {
-      console.error('Failed to remove friend:', err)
-    }
+    return deleteAndReload(`/api/friends/${friendId}`, loadFriends, 'Failed to remove friend')
   }
 
   const handleLogout = async () => {
@@ -179,7 +177,7 @@ export default function Home() {
 
         {showRequests && (
           <div className="mb-8">
-            <FriendRequests />
+            <FriendRequests onFriendAccepted={loadFriends} />
           </div>
         )}
 

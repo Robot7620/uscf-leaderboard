@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth'
 import { sql } from '@/lib/db'
+import { handleApiError } from '@/lib/api-error'
 
 export async function DELETE(
   request: NextRequest,
@@ -19,14 +20,7 @@ export async function DELETE(
     `
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
-    if (error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    console.error('Error removing friend:', error)
-    return NextResponse.json(
-      { error: 'Failed to remove friend' },
-      { status: 500 }
-    )
+  } catch (error) {
+    return handleApiError(error, 'Failed to remove friend', 'Error removing friend:')
   }
 }

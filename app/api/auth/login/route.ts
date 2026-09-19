@@ -14,14 +14,22 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { username, password } = body
+    const { password } = body
 
-    if (typeof username !== 'string' || typeof password !== 'string' || !username || !password) {
+    if (
+      typeof body.username !== 'string' ||
+      typeof password !== 'string' ||
+      !body.username.trim() ||
+      !password
+    ) {
       return NextResponse.json(
         { error: 'Username and password are required' },
         { status: 400 }
       )
     }
+
+    // Trimmed to match how signup stores it - never trim the password itself.
+    const username: string = body.username.trim()
 
     // Find user
     const users = await sql`

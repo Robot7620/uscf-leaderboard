@@ -122,11 +122,18 @@ export async function getCurrentUser(): Promise<User | null> {
   return users[0] || null
 }
 
+export class UnauthorizedError extends Error {
+  constructor() {
+    super('Unauthorized')
+    this.name = 'UnauthorizedError'
+  }
+}
+
 // Require authentication (throws if not logged in)
 export async function requireAuth(): Promise<User> {
   const user = await getCurrentUser()
   if (!user) {
-    throw new Error('Unauthorized')
+    throw new UnauthorizedError()
   }
   return user
 }
