@@ -25,15 +25,21 @@ export async function fetchUscfPlayer(id: string): Promise<Player | null> {
     return null
   }
 
-  const data: ChessToolsUscfPlayer = await response.json()
-  if (!data.name) {
+  // `data: ChessToolsUscfPlayer = ...` would only be a type assertion, not
+  // runtime validation - the API is a third party we don't control, so a
+  // non-string or blank `name` field must be treated as "no player found"
+  // rather than trusted into formatName() (which would throw on a non-
+  // string, or silently produce an empty display name on whitespace).
+  const raw: unknown = await response.json()
+  const name = raw && typeof raw === 'object' ? (raw as ChessToolsUscfPlayer).name : undefined
+  if (typeof name !== 'string' || !name.trim()) {
     return null
   }
 
   return {
     id,
-    name: formatName(data.name),
-    regular: data.rating,
+    name: formatName(name),
+    regular: (raw as ChessToolsUscfPlayer).rating,
   }
 }
 

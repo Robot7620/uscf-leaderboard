@@ -12,3 +12,17 @@ export function handleApiError(error: unknown, fallbackMessage: string, logPrefi
   console.error(logPrefix, error)
   return NextResponse.json({ error: fallbackMessage }, { status: 500 })
 }
+
+// Parses a request body as JSON and returns it only if it's a plain
+// object. Both invalid JSON (request.json() throwing) and valid-but-wrong-
+// shape JSON (bare `null`, an array, a string/number) would otherwise
+// reach a route's field destructuring and throw there instead - caught
+// only by the route's generic catch block, turning what should be a clean
+// 400 into an opaque 500.
+export async function parseJsonBody(request: Request): Promise<Record<string, unknown> | null> {
+  const body = await request.json().catch(() => null)
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return null
+  }
+  return body as Record<string, unknown>
+}

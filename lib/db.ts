@@ -20,11 +20,22 @@ function resolveSsl(): 'prefer' | 'require' | { rejectUnauthorized: true; ca: st
     return 'prefer'
   }
 
-  const ca =
-    process.env.DATABASE_CA_CERT ||
-    (process.env.DATABASE_CA_CERT_PATH
-      ? fs.readFileSync(process.env.DATABASE_CA_CERT_PATH, 'utf-8')
-      : undefined)
+  let ca = process.env.DATABASE_CA_CERT
+
+  if (!ca && process.env.DATABASE_CA_CERT_PATH) {
+    // A bad path here must not be worse than not setting it at all: an
+    // unguarded readFileSync would throw at module-import time and take
+    // down every route that imports this file, rather than just leaving
+    // the connection unverified like the "nothing configured" case below.
+    try {
+      ca = fs.readFileSync(process.env.DATABASE_CA_CERT_PATH, 'utf-8')
+    } catch (error) {
+      console.warn(
+        `[db] Could not read DATABASE_CA_CERT_PATH ("${process.env.DATABASE_CA_CERT_PATH}"): ${error instanceof Error ? error.message : error}. ` +
+          "Falling back to ssl: 'require' (encrypted, unverified)."
+      )
+    }
+  }
 
   if (!ca) {
     console.warn(

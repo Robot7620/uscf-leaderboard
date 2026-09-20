@@ -3,6 +3,7 @@ import { sql } from '@/lib/db'
 import { hashPassword, setSessionCookie, validatePassword } from '@/lib/auth'
 import { fetchUscfPlayer } from '@/lib/uscf'
 import { checkRequestRateLimit } from '@/lib/rate-limit'
+import { parseJsonBody } from '@/lib/api-error'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,11 +15,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body = await request.json()
-    const { password } = body
+    const body = await parseJsonBody(request)
+    const password = body?.password
 
     // Validate input
     if (
+      !body ||
       typeof body.username !== 'string' ||
       typeof password !== 'string' ||
       typeof body.uscfId !== 'string' ||

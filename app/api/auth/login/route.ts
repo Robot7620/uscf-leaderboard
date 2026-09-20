@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sql } from '@/lib/db'
 import { verifyPassword, setSessionCookie } from '@/lib/auth'
 import { checkRequestRateLimit } from '@/lib/rate-limit'
+import { parseJsonBody } from '@/lib/api-error'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,10 +14,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body = await request.json()
-    const { password } = body
+    const body = await parseJsonBody(request)
+    const password = body?.password
 
     if (
+      !body ||
       typeof body.username !== 'string' ||
       typeof password !== 'string' ||
       !body.username.trim() ||
